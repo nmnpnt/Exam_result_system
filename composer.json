@@ -6,13 +6,13 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "darkaonline/l5-swagger": "^8.6",
         "guzzlehttp/guzzle": "^7.8",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
-        "predis/predis": "^2.2",
         "league/csv": "^9.15",
-        "darkaonline/l5-swagger": "^8.6"
+        "predis/predis": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
