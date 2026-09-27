@@ -17,8 +17,7 @@ services:
     ports:
       - "8000:8000"
     command: >
-      sh -c "composer install --no-interaction --prefer-dist &&
-             (php artisan key:generate --force || true) &&
+      sh -c "(php artisan key:generate --force || true) &&
              php artisan migrate --force &&
              php artisan serve --host=0.0.0.0 --port=8000"
 
@@ -36,10 +35,8 @@ services:
       - mysql
       - redis
     networks: [exam_net]
-    # Multiple concurrent workers so 100k+ row CSV chunks process in parallel.
     command: >
-      sh -c "composer install --no-interaction --prefer-dist &&
-             php artisan queue:work redis --queue=marks-import,results,default --tries=3 --backoff=5 --sleep=1"
+      sh -c "php artisan queue:work redis --queue=marks-import,results,default --tries=3 --backoff=5 --sleep=1"
     deploy:
       replicas: 3
 
