@@ -1,0 +1,565 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Exam Result System API",
+        "description": "API documentation for the high-performance Exam Result System.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "Local API Server"
+        }
+    ],
+    "paths": {
+        "/api/examination-courses/{examinationCourse}/components": {
+            "get": {
+                "tags": [
+                    "Assessment Components"
+                ],
+                "summary": "List all assessment components for an examination course",
+                "operationId": "30fcceba604a79068b540a1f9f95ace5",
+                "parameters": [
+                    {
+                        "name": "examinationCourse",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of components"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Assessment Components"
+                ],
+                "summary": "Create a new assessment component (e.g. Internal, Final)",
+                "operationId": "07171882613bfd8f937b5a95dff8f6eb",
+                "parameters": [
+                    {
+                        "name": "examinationCourse",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Internal"
+                                    },
+                                    "max_marks": {
+                                        "type": "number",
+                                        "example": 30
+                                    },
+                                    "weight_percentage": {
+                                        "type": "number",
+                                        "example": 0.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Component created"
+                    }
+                }
+            }
+        },
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "c7bb21a0d87049e161b8e4c9b0d909f2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Admin"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    },
+                                    "role": {
+                                        "type": "string",
+                                        "example": "admin"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered"
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login and receive API token",
+                "operationId": "dd51a484b7fa0f97c7680fdbde14cf5f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful"
+                    }
+                }
+            }
+        },
+        "/api/programmes/{programme}/courses": {
+            "get": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "List all courses in a programme",
+                "operationId": "dc6d869542cceef4a5c992e65bd9cbe5",
+                "parameters": [
+                    {
+                        "name": "programme",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of courses"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Create a new course in a programme",
+                "operationId": "f57136ba645cf90c38161bada0d33417",
+                "parameters": [
+                    {
+                        "name": "programme",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "CS301"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Database Systems"
+                                    },
+                                    "credits": {
+                                        "type": "integer",
+                                        "example": 4
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Course created"
+                    }
+                }
+            }
+        },
+        "/api/enrollments": {
+            "post": {
+                "tags": [
+                    "Enrollments"
+                ],
+                "summary": "Enroll a student in an examination course",
+                "operationId": "6a2e292dcc494335970a261a2772dd66",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "student_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "examination_course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Enrollment created"
+                    }
+                }
+            }
+        },
+        "/api/examinations": {
+            "get": {
+                "tags": [
+                    "Examinations"
+                ],
+                "summary": "List all examinations",
+                "operationId": "8599f4a9bfb42dbfb86093c76d690cc8",
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of examinations"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Examinations"
+                ],
+                "summary": "Create a new examination",
+                "operationId": "49fcde738a38309641c0d27032183ab7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "programme_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Fall 2026"
+                                    },
+                                    "academic_year": {
+                                        "type": "string",
+                                        "example": "2026-2027"
+                                    },
+                                    "term": {
+                                        "type": "string",
+                                        "example": "Fall"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Examination created"
+                    }
+                }
+            }
+        },
+        "/api/marks": {
+            "post": {
+                "tags": [
+                    "Marks"
+                ],
+                "summary": "Submit or correct a single mark",
+                "operationId": "c0ceaec9b5b2cc6c43e4055746aa3ca5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "roll_number": {
+                                        "type": "string",
+                                        "example": "CSE2026001"
+                                    },
+                                    "course_code": {
+                                        "type": "string",
+                                        "example": "CS301"
+                                    },
+                                    "component_name": {
+                                        "type": "string",
+                                        "example": "Internal"
+                                    },
+                                    "marks_obtained": {
+                                        "type": "number",
+                                        "example": 28.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mark saved and recomputation triggered"
+                    }
+                }
+            }
+        },
+        "/api/examinations/{examination}/marks/upload": {
+            "post": {
+                "tags": [
+                    "Marks"
+                ],
+                "summary": "Bulk upload marks via CSV",
+                "operationId": "45487cfd94f444af144d134390a11682",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "202": {
+                        "description": "Batch job queued"
+                    }
+                }
+            }
+        },
+        "/api/mark-uploads/{batch}": {
+            "get": {
+                "tags": [
+                    "Marks"
+                ],
+                "summary": "Check status of a bulk upload batch",
+                "operationId": "9fb6a74d8508460d59c048f71d91f3d4",
+                "parameters": [
+                    {
+                        "name": "batch",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch status"
+                    }
+                }
+            }
+        },
+        "/api/programmes": {
+            "get": {
+                "tags": [
+                    "Programmes"
+                ],
+                "summary": "List all programmes",
+                "operationId": "b89777fa35530f2a15cb6f0d7c91dfbd",
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of programmes"
+                    }
+                }
+            }
+        },
+        "/api/programmes/{programme}": {
+            "get": {
+                "tags": [
+                    "Programmes"
+                ],
+                "summary": "Get a specific programme with its courses",
+                "operationId": "9e55031a2bfd1fc157443b33e7d5929d",
+                "parameters": [
+                    {
+                        "name": "programme",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Programme details"
+                    }
+                }
+            }
+        },
+        "/api/results": {
+            "get": {
+                "tags": [
+                    "Results"
+                ],
+                "summary": "Get all computed results",
+                "operationId": "a025a5d051517bf790b4dcef055e89fd",
+                "responses": {
+                    "200": {
+                        "description": "A flat list of student results used by the Dashboard UI"
+                    }
+                }
+            }
+        },
+        "/api/examinations/{examination}/results/compute": {
+            "post": {
+                "tags": [
+                    "Results"
+                ],
+                "summary": "Compute all grades for an examination",
+                "description": "Dispatches a fan-out queue architecture to compute grades for every student asynchronously.",
+                "operationId": "9619d967fded5ab20b166ebfd1350333",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Computation jobs dispatched to the queue"
+                    }
+                }
+            }
+        },
+        "/api/students": {
+            "get": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "List all students",
+                "operationId": "5a54d6df45ca455ad022d2f7b9da9731",
+                "parameters": [
+                    {
+                        "name": "roll_number",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of students"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Assessment Components",
+            "description": "Assessment Components"
+        },
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Courses",
+            "description": "Courses"
+        },
+        {
+            "name": "Enrollments",
+            "description": "Enrollments"
+        },
+        {
+            "name": "Examinations",
+            "description": "Examinations"
+        },
+        {
+            "name": "Marks",
+            "description": "Marks"
+        },
+        {
+            "name": "Programmes",
+            "description": "Programmes"
+        },
+        {
+            "name": "Results",
+            "description": "Results"
+        },
+        {
+            "name": "Students",
+            "description": "Students"
+        }
+    ]
+}

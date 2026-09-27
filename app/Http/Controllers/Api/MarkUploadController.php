@@ -15,10 +15,22 @@ class MarkUploadController extends Controller
     public function __construct(private MarkCsvImportService $importService) {}
 
     /**
-     * POST /api/examinations/{examination}/marks/upload
-     * Requires header X-Idempotency-Key (enforced by middleware).
-     * Accepts a CSV file, kicks off async chunked processing, and returns
-     * immediately with a batch id the client can poll for progress.
+     * @OA\Post(
+     *     path="/api/examinations/{examination}/marks/upload",
+     *     tags={"Marks"},
+     *     summary="Bulk upload marks via CSV",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="file", type="string", format="binary")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="202", description="Batch job queued")
+     * )
      */
     public function store(StoreMarkUploadRequest $request, Examination $examination): JsonResponse
     {
@@ -44,7 +56,15 @@ class MarkUploadController extends Controller
         ], 202);
     }
 
-    /** GET /api/mark-uploads/{batch} — poll import progress. */
+    /**
+     * @OA\Get(
+     *     path="/api/mark-uploads/{batch}",
+     *     tags={"Marks"},
+     *     summary="Check status of a bulk upload batch",
+     *     @OA\Parameter(name="batch", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response="200", description="Batch status")
+     * )
+     */
     public function show(MarkUploadBatch $batch): JsonResponse
     {
         return response()->json([

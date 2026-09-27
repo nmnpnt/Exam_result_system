@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ProgrammeController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/programmes",
+     *     tags={"Programmes"},
+     *     summary="List all programmes",
+     *     @OA\Response(response="200", description="Paginated list of programmes")
+     * )
+     */
     public function index()
     {
         return Programme::paginate(50);
@@ -24,6 +32,15 @@ class ProgrammeController extends Controller
         return response()->json(Programme::create($data), 201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/programmes/{programme}",
+     *     tags={"Programmes"},
+     *     summary="Get a specific programme with its courses",
+     *     @OA\Parameter(name="programme", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response="200", description="Programme details")
+     * )
+     */
     public function show(Programme $programme)
     {
         return $programme->load('courses');

@@ -11,7 +11,14 @@ use Illuminate\Http\Request;
 
 class ResultController extends Controller
 {
-    /** GET /api/results */
+    /**
+     * @OA\Get(
+     *     path="/api/results",
+     *     tags={"Results"},
+     *     summary="Get all computed results",
+     *     @OA\Response(response="200", description="A flat list of student results used by the Dashboard UI")
+     * )
+     */
     public function index(): JsonResponse
     {
         $results = \App\Models\Result::with(['enrollment.student.programme', 'enrollment.examinationCourse.course'])->get()->map(function($result) {
@@ -39,8 +46,14 @@ class ResultController extends Controller
     }
 
     /**
-     * POST /api/examinations/{examination}/results/compute
-     * Fans out result computation across the whole examination asynchronously.
+     * @OA\Post(
+     *     path="/api/examinations/{examination}/results/compute",
+     *     tags={"Results"},
+     *     summary="Compute all grades for an examination",
+     *     description="Dispatches a fan-out queue architecture to compute grades for every student asynchronously.",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response="202", description="Computation jobs dispatched to the queue")
+     * )
      */
     public function compute(Examination $examination): JsonResponse
     {

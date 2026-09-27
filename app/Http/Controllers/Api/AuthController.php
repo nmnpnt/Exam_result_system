@@ -12,9 +12,21 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * POST /api/auth/register — create a new user and return a Sanctum token.
-     * Primarily for demo/seeding purposes; in production, user creation would
-     * go through an admin-only provisioning flow.
+     * @OA\Post(
+     *     path="/api/auth/register",
+     *     tags={"Authentication"},
+     *     summary="Register a new user",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string", example="Admin"),
+     *             @OA\Property(property="email", type="string", example="admin@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123"),
+     *             @OA\Property(property="role", type="string", example="admin")
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="User registered")
+     * )
      */
     public function register(Request $request): JsonResponse
     {
@@ -41,8 +53,19 @@ class AuthController extends Controller
     }
 
     /**
-     * POST /api/auth/login — authenticate with email/password, receive a
-     * Sanctum plain-text token for subsequent API calls.
+     * @OA\Post(
+     *     path="/api/auth/login",
+     *     tags={"Authentication"},
+     *     summary="Login and receive API token",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="email", type="string", example="admin@example.com"),
+     *             @OA\Property(property="password", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(response="200", description="Login successful")
+     * )
      */
     public function login(Request $request): JsonResponse
     {

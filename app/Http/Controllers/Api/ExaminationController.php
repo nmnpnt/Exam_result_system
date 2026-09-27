@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ExaminationController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/examinations",
+     *     tags={"Examinations"},
+     *     summary="List all examinations",
+     *     @OA\Response(response="200", description="Paginated list of examinations")
+     * )
+     */
     public function index(Request $request)
     {
         return Examination::query()
@@ -16,6 +24,23 @@ class ExaminationController extends Controller
             ->paginate(50);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/examinations",
+     *     tags={"Examinations"},
+     *     summary="Create a new examination",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="programme_id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="Fall 2026"),
+     *             @OA\Property(property="academic_year", type="string", example="2026-2027"),
+     *             @OA\Property(property="term", type="string", example="Fall")
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="Examination created")
+     * )
+     */
     public function store(Request $request)
     {
         $data = $request->validate([

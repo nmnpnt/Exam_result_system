@@ -9,6 +9,21 @@ use Illuminate\Validation\ValidationException;
 
 class EnrollmentController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/enrollments",
+     *     tags={"Enrollments"},
+     *     summary="Enroll a student in an examination course",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="student_id", type="integer", example=1),
+     *             @OA\Property(property="examination_course_id", type="integer", example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="Enrollment created")
+     * )
+     */
     public function store(Request $request)
     {
         $data = $request->validate([

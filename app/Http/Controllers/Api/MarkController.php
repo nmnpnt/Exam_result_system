@@ -13,9 +13,21 @@ use Illuminate\Support\Facades\DB;
 class MarkController extends Controller
 {
     /**
-     * POST /api/marks — single-record entry/correction path (as opposed to
-     * bulk CSV). Optimistic locking via `version`: a client must send back
-     * the version it last read when updating, or the write is rejected.
+     * @OA\Post(
+     *     path="/api/marks",
+     *     tags={"Marks"},
+     *     summary="Submit or correct a single mark",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="roll_number", type="string", example="CSE2026001"),
+     *             @OA\Property(property="course_code", type="string", example="CS301"),
+     *             @OA\Property(property="component_name", type="string", example="Internal"),
+     *             @OA\Property(property="marks_obtained", type="number", example=28.5)
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="Mark saved and recomputation triggered")
+     * )
      */
     public function store(StoreMarkRequest $request, MarksValidationService $validator): JsonResponse
     {

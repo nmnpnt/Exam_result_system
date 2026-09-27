@@ -9,6 +9,15 @@ use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/students",
+     *     tags={"Students"},
+     *     summary="List all students",
+     *     @OA\Parameter(name="roll_number", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Response(response="200", description="A list of students")
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Student::query()
