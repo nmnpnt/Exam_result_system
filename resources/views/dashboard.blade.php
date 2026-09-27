@@ -176,9 +176,10 @@
                             <span x-show="!computing">Compute Grades</span>
                             <span x-show="computing">Computing...</span>
                         </button>
-                        <button @click="fetchResults" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            Refresh Data
+                        <button @click="fetchResults" :disabled="refreshing" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center disabled:opacity-50 transition duration-150">
+                            <svg :class="{'animate-spin': refreshing}" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span x-show="!refreshing">Refresh Data</span>
+                            <span x-show="refreshing">Refreshing...</span>
                         </button>
                     </div>
                 </div>
@@ -240,6 +241,7 @@
             return {
                 token: localStorage.getItem('auth_token') || '',
                 loading: false,
+                refreshing: false,
                 error: '',
                 success: '',
                 loginForm: { email: 'admin@exam.edu', password: 'password' },
@@ -392,11 +394,14 @@
                 },
 
                 async fetchResults() {
+                    this.refreshing = true;
                     try {
                         const data = await this.api('/results');
                         this.results = data.data;
                     } catch (err) {
                         console.error('Failed to fetch results', err);
+                    } finally {
+                        setTimeout(() => this.refreshing = false, 500); // 500ms debounce
                     }
                 },
 
