@@ -99,16 +99,24 @@
                     <p class="text-sm text-gray-600 mb-4">Update or enter a mark for a single student. Results are re-computed automatically in the background.</p>
                     
                     <form @submit.prevent="submitSingleMark" class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-gray-700 text-xs font-bold mb-1">Enrollment ID</label>
-                                <input type="number" x-model.number="singleMark.enrollment_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                                <p class="text-xs text-gray-400 mt-1">e.g. 1 to 40</p>
+                                <label class="block text-gray-700 text-xs font-bold mb-1">Roll Number</label>
+                                <input type="text" x-model="singleMark.roll_number" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                                <p class="text-xs text-gray-400 mt-1">e.g. CSE2026006</p>
                             </div>
                             <div>
-                                <label class="block text-gray-700 text-xs font-bold mb-1">Component ID</label>
-                                <input type="number" x-model.number="singleMark.assessment_component_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
-                                <p class="text-xs text-gray-400 mt-1">e.g. 1, 2, 3, or 4</p>
+                                <label class="block text-gray-700 text-xs font-bold mb-1">Course Code</label>
+                                <input type="text" x-model="singleMark.course_code" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                                <p class="text-xs text-gray-400 mt-1">e.g. CS302</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs font-bold mb-1">Component Name</label>
+                                <select x-model="singleMark.component_name" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="Internal">Internal</option>
+                                    <option value="Final">Final</option>
+                                </select>
                             </div>
                         </div>
                         <div>
@@ -234,7 +242,7 @@
                 error: '',
                 success: '',
                 loginForm: { email: 'admin@exam.edu', password: 'password' },
-                singleMark: { enrollment_id: '', assessment_component_id: '', marks_obtained: '' },
+                singleMark: { roll_number: '', course_code: '', component_name: '', marks_obtained: '' },
                 file: null,
                 activeBatch: null,
                 uploading: false,

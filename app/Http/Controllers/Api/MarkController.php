@@ -20,6 +20,23 @@ class MarkController extends Controller
     public function store(StoreMarkRequest $request, MarksValidationService $validator): JsonResponse
     {
         $data = $request->validated();
+        
+        // Resolve string identifiers into IDs if needed (UI convenience)
+        if (!isset($data['enrollment_id']) && isset($data['roll_number']) && isset($data['course_code'])) {
+            $student = \App\Models\Student::where('roll_number', $data['roll_number'])->firstOrFail();
+            $enrollment = \App\Models\Enrollment::where('student_id', $student->id)
+                ->whereHas('examinationCourse.course', function($q) use ($data) {
+                    $q->where('code', $data['course_code']);
+                })->firstOrFail();
+            $data['enrollment_id'] = $enrollment->id;
+            
+            if (!isset($data['assessment_component_id']) && isset($data['component_name'])) {
+                $component = $enrollment->examinationCourse->assessmentComponents()
+                    ->where('name', 'like', '%' . $data['component_name'] . '%')
+                    ->firstOrFail();
+                $data['assessment_component_id'] = $component->id;
+            }
+        }
 
         $mark = DB::transaction(function () use ($data, $validator, $request) {
             $existing = Mark::where('enrollment_id', $data['enrollment_id'])
