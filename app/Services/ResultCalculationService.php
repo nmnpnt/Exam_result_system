@@ -36,18 +36,22 @@ class ResultCalculationService
 
         $totalObtained = 0.0;
         $totalMax = 0.0;
+        
+        $courseMaxMarks = (float) $enrollment->examinationCourse->max_marks;
+        $passMarks = $enrollment->examinationCourse->pass_marks;
 
         foreach ($components as $component) {
             $mark = $marks->firstWhere('assessment_component_id', $component->id);
             $weight = (float) $component->weight_percentage / 100;
-            $totalObtained += ((float) $mark->marks_obtained / (float) $component->max_marks) * $weight * (float) $component->max_marks;
-            $totalMax += $weight * (float) $component->max_marks;
+            
+            // The actual marks contributed to the final grade:
+            // (Percentage on this component) * (Weight of this component) * (Total Course Max Marks)
+            $totalObtained += ((float) $mark->marks_obtained / (float) $component->max_marks) * $weight * $courseMaxMarks;
+            $totalMax += $weight * $courseMaxMarks;
         }
 
         $percentage = $totalMax > 0 ? round(($totalObtained / $totalMax) * 100, 2) : 0;
-        $passMarks = $enrollment->examinationCourse->pass_marks;
-        $maxMarks = $enrollment->examinationCourse->max_marks;
-        $passPercentage = $maxMarks > 0 ? ($passMarks / $maxMarks) * 100 : 40;
+        $passPercentage = $courseMaxMarks > 0 ? ($passMarks / $courseMaxMarks) * 100 : 40;
 
         return $this->upsert($enrollment, [
             'total_marks_obtained' => round($totalObtained, 2),
