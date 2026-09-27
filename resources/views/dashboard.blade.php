@@ -183,51 +183,52 @@
                     </div>
                 </div>
                 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programme</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Marks</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <template x-for="result in results" :key="result.id">
-                                <tr class="hover:bg-gray-50 transition duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm font-medium text-gray-900" x-text="result.student.name"></div>
-                                        <div class="text-sm text-gray-500" x-text="result.student.roll_number"></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900" x-text="result.student.programme.code"></div>
-                                        <div class="text-sm text-gray-500" x-text="result.student.batch_year"></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 font-medium" x-text="result.course.code"></div>
-                                        <div class="text-sm text-gray-500" x-text="result.course.name"></div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold" x-text="result.total_marks"></td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                            :class="{
-                                                'bg-green-100 text-green-800': ['A+', 'A', 'B'].includes(result.grade),
-                                                'bg-yellow-100 text-yellow-800': ['C', 'D'].includes(result.grade),
-                                                'bg-red-100 text-red-800': result.grade === 'E' || result.grade === 'F'
-                                            }" x-text="result.grade">
-                                        </span>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr x-show="results.length === 0">
-                                <td colspan="4" class="px-6 py-10 text-center text-gray-500 text-sm">
-                                    No results found. Upload marks to compute grades.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" x-show="results.length > 0">
+                    <template x-for="group in groupedResults" :key="group.student.roll_number">
+                        <div class="bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col">
+                            <div class="bg-indigo-50 border-b border-indigo-100 px-4 py-3 flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-indigo-900" x-text="group.student.name"></h4>
+                                    <p class="text-xs text-indigo-700" x-text="group.student.roll_number + ' • ' + group.student.programme.code"></p>
+                                </div>
+                            </div>
+                            <div class="p-0 flex-1">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Course</th>
+                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Marks</th>
+                                            <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Grade</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 bg-white">
+                                        <template x-for="result in group.courses" :key="result.id">
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-4 py-3 text-sm">
+                                                    <div class="font-medium text-gray-900" x-text="result.course.code"></div>
+                                                    <div class="text-xs text-gray-500 truncate" style="max-width: 140px;" x-text="result.course.name"></div>
+                                                </td>
+                                                <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900" x-text="result.total_marks || '-'"></td>
+                                                <td class="px-4 py-3 text-sm text-right">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                                        :class="{
+                                                            'bg-green-100 text-green-800': ['A+', 'A', 'B'].includes(result.grade),
+                                                            'bg-yellow-100 text-yellow-800': ['C', 'D'].includes(result.grade),
+                                                            'bg-red-100 text-red-800': result.grade === 'E' || result.grade === 'F'
+                                                        }" x-text="result.grade || '-'">
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                
+                <div x-show="results.length === 0" class="text-center py-10 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <p class="text-gray-500 text-sm">No results found. Upload marks to compute grades.</p>
                 </div>
             </div>
             
@@ -249,6 +250,20 @@
                 computing: false,
                 pollInterval: null,
                 results: [],
+
+                get groupedResults() {
+                    const groups = {};
+                    this.results.forEach(r => {
+                        if (!groups[r.student.roll_number]) {
+                            groups[r.student.roll_number] = {
+                                student: r.student,
+                                courses: []
+                            };
+                        }
+                        groups[r.student.roll_number].courses.push(r);
+                    });
+                    return Object.values(groups);
+                },
 
                 init() {
                     if (this.token) {
