@@ -66,10 +66,10 @@
         <!-- Dashboard Section -->
         <div x-show="token" x-cloak class="space-y-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Upload Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Upload Section (Bulk) -->
                 <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="text-lg font-semibold border-b pb-2 mb-4">Upload Marks (CSV)</h3>
+                    <h3 class="text-lg font-semibold border-b pb-2 mb-4">Bulk Upload Marks (CSV)</h3>
                     <p class="text-sm text-gray-600 mb-4">Upload the sample_marks.csv file to process student results asynchronously via Redis queues.</p>
                     
                     <form @submit.prevent="uploadCsv" class="space-y-4">
@@ -84,51 +84,76 @@
                             </label>
                         </div>
                         <button :disabled="!file || loading" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none transition duration-150 disabled:opacity-50 flex justify-center">
-                            <span x-show="!loading">Upload & Process</span>
-                            <span x-show="loading">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                            <span x-show="!loading && !uploading">Upload & Process</span>
+                            <span x-show="uploading">
+                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                 Uploading...
                             </span>
                         </button>
                     </form>
                 </div>
 
-                <!-- Batch Status Section -->
-                <div class="bg-white rounded-lg shadow p-6" x-show="activeBatch" x-cloak>
-                    <div class="flex justify-between items-center border-b pb-2 mb-4">
-                        <h3 class="text-lg font-semibold">Queue Processing Status</h3>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full" 
-                            :class="{
-                                'bg-yellow-100 text-yellow-800': activeBatch?.status === 'processing',
-                                'bg-green-100 text-green-800': activeBatch?.status === 'completed',
-                                'bg-red-100 text-red-800': activeBatch?.status === 'failed'
-                            }" x-text="activeBatch?.status?.toUpperCase()">
-                        </span>
+                <!-- Single Entry Section -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold border-b pb-2 mb-4">Manual Entry (Correction)</h3>
+                    <p class="text-sm text-gray-600 mb-4">Update or enter a mark for a single student. Results are re-computed automatically in the background.</p>
+                    
+                    <form @submit.prevent="submitSingleMark" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-xs font-bold mb-1">Enrollment ID</label>
+                                <input type="number" x-model.number="singleMark.enrollment_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                                <p class="text-xs text-gray-400 mt-1">e.g. 1 to 40</p>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-xs font-bold mb-1">Component ID</label>
+                                <input type="number" x-model.number="singleMark.assessment_component_id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                                <p class="text-xs text-gray-400 mt-1">e.g. 1, 2, 3, or 4</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-xs font-bold mb-1">Marks Obtained</label>
+                            <input type="number" step="0.5" x-model.number="singleMark.marks_obtained" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        </div>
+                        <button :disabled="loading" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none transition duration-150 disabled:opacity-50 mt-2">
+                            <span>Submit Mark</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Batch Status Section -->
+            <div class="bg-white rounded-lg shadow p-6" x-show="activeBatch" x-cloak>
+                <div class="flex justify-between items-center border-b pb-2 mb-4">
+                    <h3 class="text-lg font-semibold">Queue Processing Status (Bulk Upload)</h3>
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full" 
+                        :class="{
+                            'bg-yellow-100 text-yellow-800': activeBatch?.status === 'processing',
+                            'bg-green-100 text-green-800': activeBatch?.status === 'completed',
+                            'bg-red-100 text-red-800': activeBatch?.status === 'failed'
+                        }" x-text="activeBatch?.status?.toUpperCase()">
+                    </span>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Batch ID: <span class="font-mono" x-text="activeBatch?.id"></span></span>
+                        <span>Processed: <span x-text="activeBatch?.processed_rows || 0"></span> / <span x-text="activeBatch?.total_rows || 0"></span> rows</span>
                     </div>
                     
-                    <div class="space-y-4">
-                        <div class="flex justify-between text-sm text-gray-600">
-                            <span>Batch ID: <span class="font-mono" x-text="activeBatch?.id"></span></span>
-                            <span>Processed: <span x-text="activeBatch?.processed_rows || 0"></span> / <span x-text="activeBatch?.total_rows || 0"></span> rows</span>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" :style="`width: ${Math.min(100, Math.round(((activeBatch?.processed_rows || 0) / (activeBatch?.total_rows || 1)) * 100))}%`"></div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-center pt-2">
+                        <div class="bg-gray-50 rounded p-2">
+                            <p class="text-xs text-gray-500 uppercase">Errors</p>
+                            <p class="text-xl font-semibold text-red-600" x-text="activeBatch?.failed_rows || 0"></p>
                         </div>
-                        
-                        <!-- Progress Bar -->
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500" :style="`width: ${Math.min(100, Math.round(((activeBatch?.processed_rows || 0) / (activeBatch?.total_rows || 1)) * 100))}%`"></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4 text-center pt-2">
-                            <div class="bg-gray-50 rounded p-2">
-                                <p class="text-xs text-gray-500 uppercase">Errors</p>
-                                <p class="text-xl font-semibold text-red-600" x-text="activeBatch?.failed_rows || 0"></p>
-                            </div>
-                            <div class="bg-gray-50 rounded p-2">
-                                <p class="text-xs text-gray-500 uppercase">Completion</p>
-                                <p class="text-xl font-semibold text-indigo-600" x-text="Math.round(((activeBatch?.processed_rows || 0) / (activeBatch?.total_rows || 1)) * 100) + '%'"></p>
-                            </div>
+                        <div class="bg-gray-50 rounded p-2">
+                            <p class="text-xs text-gray-500 uppercase">Completion</p>
+                            <p class="text-xl font-semibold text-indigo-600" x-text="Math.round(((activeBatch?.processed_rows || 0) / (activeBatch?.total_rows || 1)) * 100) + '%'"></p>
                         </div>
                     </div>
                 </div>
@@ -198,8 +223,10 @@
                 error: '',
                 success: '',
                 loginForm: { email: 'admin@exam.edu', password: 'password' },
+                singleMark: { enrollment_id: '', assessment_component_id: '', marks_obtained: '' },
                 file: null,
                 activeBatch: null,
+                uploading: false,
                 pollInterval: null,
                 results: [],
 
@@ -228,6 +255,13 @@
                     
                     if (!response.ok) {
                         if (response.status === 401) this.logout();
+                        
+                        // Handle validation errors (Laravel 422 responses)
+                        if (response.status === 422 && data.errors) {
+                            const firstError = Object.values(data.errors)[0][0];
+                            throw new Error(firstError);
+                        }
+                        
                         throw new Error(data.message || data.error || 'API Error');
                     }
                     return data;
@@ -264,6 +298,7 @@
                 async uploadCsv() {
                     if (!this.file) return;
                     this.loading = true;
+                    this.uploading = true;
                     this.error = '';
                     this.success = '';
                     
@@ -281,6 +316,31 @@
                         setTimeout(() => this.success = '', 3000);
                         this.file = null;
                         this.startPolling();
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.loading = false;
+                        this.uploading = false;
+                    }
+                },
+
+                async submitSingleMark() {
+                    this.loading = true;
+                    this.error = '';
+                    this.success = '';
+                    
+                    try {
+                        await this.api('/marks', {
+                            method: 'POST',
+                            body: this.singleMark
+                        });
+                        
+                        this.success = 'Mark recorded successfully! The result is being re-computed in the background.';
+                        this.singleMark.marks_obtained = ''; // reset just the marks
+                        setTimeout(() => {
+                            this.success = '';
+                            this.fetchResults(); // Refresh after a small delay to let queue run
+                        }, 2000);
                     } catch (err) {
                         this.error = err.message;
                     } finally {
