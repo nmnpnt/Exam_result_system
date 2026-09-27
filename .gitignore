@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+.env
+.env.backup
+.phpunit.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+storage/app/mark-uploads/*
+!storage/app/mark-uploads/.gitkeep
+storage/*.key
+storage/logs/*.log

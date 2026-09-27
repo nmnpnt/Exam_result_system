@@ -1,0 +1,677 @@
+{
+	"info": {
+		"_postman_id": "exam-result-system-v1",
+		"name": "Exam Result System API",
+		"description": "University Examination & Result Processing System — complete API collection.\n\n## Quick start\n1. Run `docker compose up --build`\n2. Run `docker compose exec app php artisan db:seed`\n3. Hit **1. Auth → Login** (pre-filled with seeded admin credentials). The token is auto-saved.\n4. Walk through folders in order: Setup → Marks → Results.\n\nEvery request after Login uses the `{{token}}` variable automatically.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "base_url", "value": "http://localhost:8000/api" },
+		{ "key": "token", "value": "" },
+		{ "key": "programme_id", "value": "" },
+		{ "key": "course_id", "value": "" },
+		{ "key": "course2_id", "value": "" },
+		{ "key": "examination_id", "value": "" },
+		{ "key": "exam_course_id", "value": "" },
+		{ "key": "exam_course2_id", "value": "" },
+		{ "key": "component_internal_id", "value": "" },
+		{ "key": "component_final_id", "value": "" },
+		{ "key": "student_id", "value": "" },
+		{ "key": "enrollment_id", "value": "" },
+		{ "key": "batch_id", "value": "" }
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+	},
+	"item": [
+		{
+			"name": "1. Auth",
+			"description": "Register or login to get a Sanctum bearer token. The token is auto-saved to `{{token}}`.",
+			"item": [
+				{
+					"name": "Register Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('token', json.token);",
+									"    console.log('Token saved: ' + json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Admin User\",\n    \"email\": \"admin@exam.edu\",\n    \"password\": \"password\",\n    \"role\": \"admin\"\n}"
+						},
+						"url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+					}
+				},
+				{
+					"name": "Login (use this after seeding)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('token', json.token);",
+									"    console.log('Token saved: ' + json.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@exam.edu\",\n    \"password\": \"password\"\n}"
+						},
+						"url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Setup (Programme → Course → Exam)",
+			"description": "Create the academic structure. Run these in order, or skip if you've already seeded.",
+			"item": [
+				{
+					"name": "Create Programme",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('programme_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"ECE\",\n    \"name\": \"B.Tech Electronics & Communication\",\n    \"duration_years\": 4\n}"
+						},
+						"url": { "raw": "{{base_url}}/programmes", "host": ["{{base_url}}"], "path": ["programmes"] }
+					}
+				},
+				{
+					"name": "List Programmes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    if (json.data && json.data.length > 0) {",
+									"        pm.collectionVariables.set('programme_id', json.data[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/programmes", "host": ["{{base_url}}"], "path": ["programmes"] }
+					}
+				},
+				{
+					"name": "Show Programme",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/programmes/{{programme_id}}", "host": ["{{base_url}}"], "path": ["programmes", "{{programme_id}}"] }
+					}
+				},
+				{
+					"name": "Create Course in Programme",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('course_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"EC401\",\n    \"name\": \"Digital Signal Processing\",\n    \"credits\": 4\n}"
+						},
+						"url": { "raw": "{{base_url}}/programmes/{{programme_id}}/courses", "host": ["{{base_url}}"], "path": ["programmes", "{{programme_id}}", "courses"] }
+					}
+				},
+				{
+					"name": "List Courses in Programme",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/programmes/{{programme_id}}/courses", "host": ["{{base_url}}"], "path": ["programmes", "{{programme_id}}", "courses"] }
+					}
+				},
+				{
+					"name": "Create Examination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('examination_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"programme_id\": {{programme_id}},\n    \"name\": \"Semester 7 End-Term\",\n    \"academic_year\": \"2025-2026\",\n    \"term\": \"Semester 7\"\n}"
+						},
+						"url": { "raw": "{{base_url}}/examinations", "host": ["{{base_url}}"], "path": ["examinations"] }
+					}
+				},
+				{
+					"name": "List Examinations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var json = pm.response.json();",
+									"    if (json.data && json.data.length > 0) {",
+									"        pm.collectionVariables.set('examination_id', json.data[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/examinations", "host": ["{{base_url}}"], "path": ["examinations"] }
+					}
+				},
+				{
+					"name": "Show Examination (with courses & components)",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/examinations/{{examination_id}}", "host": ["{{base_url}}"], "path": ["examinations", "{{examination_id}}"] }
+					}
+				},
+				{
+					"name": "Open Examination (set status → open)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"open\"\n}"
+						},
+						"url": { "raw": "{{base_url}}/examinations/{{examination_id}}/status", "host": ["{{base_url}}"], "path": ["examinations", "{{examination_id}}", "status"] }
+					}
+				},
+				{
+					"name": "Add Course to Examination",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('exam_course_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"course_id\": {{course_id}},\n    \"max_marks\": 100,\n    \"pass_marks\": 40\n}"
+						},
+						"url": { "raw": "{{base_url}}/examinations/{{examination_id}}/courses", "host": ["{{base_url}}"], "path": ["examinations", "{{examination_id}}", "courses"] }
+					}
+				},
+				{
+					"name": "Add Assessment Component (Internal)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('component_internal_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Internal\",\n    \"max_marks\": 30,\n    \"weight_percentage\": 30\n}"
+						},
+						"url": { "raw": "{{base_url}}/examination-courses/{{exam_course_id}}/components", "host": ["{{base_url}}"], "path": ["examination-courses", "{{exam_course_id}}", "components"] }
+					}
+				},
+				{
+					"name": "Add Assessment Component (Final)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('component_final_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Final\",\n    \"max_marks\": 70,\n    \"weight_percentage\": 70\n}"
+						},
+						"url": { "raw": "{{base_url}}/examination-courses/{{exam_course_id}}/components", "host": ["{{base_url}}"], "path": ["examination-courses", "{{exam_course_id}}", "components"] }
+					}
+				},
+				{
+					"name": "List Assessment Components",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/examination-courses/{{exam_course_id}}/components", "host": ["{{base_url}}"], "path": ["examination-courses", "{{exam_course_id}}", "components"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Students & Enrollment",
+			"description": "Create students, enroll them in examination courses.",
+			"item": [
+				{
+					"name": "Create Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('student_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"programme_id\": {{programme_id}},\n    \"roll_number\": \"CSE2026099\",\n    \"name\": \"Demo Student\",\n    \"email\": \"demo@example.edu\",\n    \"batch_year\": 2026\n}"
+						},
+						"url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] }
+					}
+				},
+				{
+					"name": "List Students",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/students", "host": ["{{base_url}}"], "path": ["students"] }
+					}
+				},
+				{
+					"name": "Show Student",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/students/{{student_id}}", "host": ["{{base_url}}"], "path": ["students", "{{student_id}}"] }
+					}
+				},
+				{
+					"name": "Enroll Student in Exam Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('enrollment_id', json.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"student_id\": {{student_id}},\n    \"examination_course_id\": {{exam_course_id}}\n}"
+						},
+						"url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Marks Entry",
+			"description": "Enter marks one-by-one or upload a CSV in bulk.",
+			"item": [
+				{
+					"name": "Single Mark Entry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"enrollment_id\": {{enrollment_id}},\n    \"assessment_component_id\": {{component_internal_id}},\n    \"marks_obtained\": 25\n}"
+						},
+						"url": { "raw": "{{base_url}}/marks", "host": ["{{base_url}}"], "path": ["marks"] }
+					}
+				},
+				{
+					"name": "Single Mark Correction (optimistic lock)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"enrollment_id\": {{enrollment_id}},\n    \"assessment_component_id\": {{component_internal_id}},\n    \"marks_obtained\": 28,\n    \"expected_version\": 1\n}"
+						},
+						"url": { "raw": "{{base_url}}/marks", "host": ["{{base_url}}"], "path": ["marks"] }
+					}
+				},
+				{
+					"name": "Bulk CSV Upload (seeded exam)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 202) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('batch_id', json.batch_id);",
+									"    console.log('Batch ID saved: ' + json.batch_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate a unique idempotency key for each run.",
+									"pm.collectionVariables.set('idempotency_key', 'bulk-' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "X-Idempotency-Key", "value": "{{idempotency_key}}" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "sample_marks.csv",
+									"description": "Select the sample_marks.csv file from the project root."
+								}
+							]
+						},
+						"url": { "raw": "{{base_url}}/examinations/1/marks/upload", "host": ["{{base_url}}"], "path": ["examinations", "1", "marks", "upload"] },
+						"description": "Uses examination ID 1 (created by the seeder). Change the ID if needed.\n\n**Important**: Select the `sample_marks.csv` file from the project root in the file picker."
+					}
+				},
+				{
+					"name": "Poll Upload Progress",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/mark-uploads/{{batch_id}}", "host": ["{{base_url}}"], "path": ["mark-uploads", "{{batch_id}}"] }
+					}
+				},
+				{
+					"name": "View Upload Errors",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/mark-uploads/{{batch_id}}/errors", "host": ["{{base_url}}"], "path": ["mark-uploads", "{{batch_id}}", "errors"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Results",
+			"description": "Compute results, publish, and view individual results.",
+			"item": [
+				{
+					"name": "Compute Results (async)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/examinations/1/results/compute", "host": ["{{base_url}}"], "path": ["examinations", "1", "results", "compute"] },
+						"description": "Fans out CalculateStudentResult jobs for every enrollment in examination 1. Poll queue workers to complete."
+					}
+				},
+				{
+					"name": "Lock Examination (status → locked)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"locked\"\n}"
+						},
+						"url": { "raw": "{{base_url}}/examinations/1/status", "host": ["{{base_url}}"], "path": ["examinations", "1", "status"] }
+					}
+				},
+				{
+					"name": "Publish Results",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set('publish_key', 'publish-' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "X-Idempotency-Key", "value": "{{publish_key}}" }
+						],
+						"url": { "raw": "{{base_url}}/examinations/1/results/publish", "host": ["{{base_url}}"], "path": ["examinations", "1", "results", "publish"] },
+						"description": "Publishes all computed results for examination 1."
+					}
+				},
+				{
+					"name": "View Student Result (enrollment 1)",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/enrollments/1/result", "host": ["{{base_url}}"], "path": ["enrollments", "1", "result"] },
+						"description": "Returns the published result for enrollment 1 (first seeded student, first course)."
+					}
+				},
+				{
+					"name": "View Student Result (enrollment 2)",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": { "raw": "{{base_url}}/enrollments/2/result", "host": ["{{base_url}}"], "path": ["enrollments", "2", "result"] }
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Idempotency Demo",
+			"description": "Demonstrates that replaying the same request with the same idempotency key returns the original response, not a duplicate.",
+			"item": [
+				{
+					"name": "First Upload (key = demo-idem-1)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 202) {",
+									"    var json = pm.response.json();",
+									"    pm.collectionVariables.set('batch_id', json.batch_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "X-Idempotency-Key", "value": "demo-idem-1" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "file", "type": "file", "src": "sample_marks.csv" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/examinations/1/marks/upload", "host": ["{{base_url}}"], "path": ["examinations", "1", "marks", "upload"] }
+					}
+				},
+				{
+					"name": "Replay Upload (same key = demo-idem-1)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "X-Idempotency-Key", "value": "demo-idem-1" }
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "file", "type": "file", "src": "sample_marks.csv" }
+							]
+						},
+						"url": { "raw": "{{base_url}}/examinations/1/marks/upload", "host": ["{{base_url}}"], "path": ["examinations", "1", "marks", "upload"] },
+						"description": "Should return the same batch_id as the first upload — the server replays the cached response."
+					}
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,94 @@
+# docker-compose.yml — Exam Result System
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: exam_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - mysql
+      - redis
+    networks: [exam_net]
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "composer install --no-interaction --prefer-dist &&
+             (php artisan key:generate --force || true) &&
+             php artisan migrate --force &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  queue-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    # container_name omitted — replicas require unique names
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+      - mysql
+      - redis
+    networks: [exam_net]
+    # Multiple concurrent workers so 100k+ row CSV chunks process in parallel.
+    command: >
+      sh -c "composer install --no-interaction --prefer-dist &&
+             php artisan queue:work redis --queue=marks-import,results,default --tries=3 --backoff=5 --sleep=1"
+    deploy:
+      replicas: 3
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: exam_scheduler
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - app
+    networks: [exam_net]
+    command: >
+      sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+
+  mysql:
+    image: mysql:8.0
+    container_name: exam_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: exam_result_system
+      MYSQL_USER: exam_user
+      MYSQL_PASSWORD: exam_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks: [exam_net]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: exam_redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    networks: [exam_net]
+
+networks:
+  exam_net:
+    driver: bridge
+
+volumes:
+  mysql_data:
