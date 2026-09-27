@@ -237,10 +237,7 @@ Two mechanisms, for two different problems:
 
 ## Trade-offs / assumptions (explicitly incomplete areas)
 
-- **No UI** beyond the JSON API, as invited by the brief; a Postman/Swagger
-  collection is the intended client. `l5-swagger` is wired into
-  `composer.json` but annotations aren't written for every endpoint —
-  would add this next given more time.
+- **No frontend UI** beyond the JSON API, as invited by the brief; a Postman collection and an interactive **Swagger UI** are provided.
 - **Auth is minimal**: Sanctum token auth with a `role` column on `users`,
   but no policy/gate layer enforcing who can upload marks vs. publish
   results — assumed out of scope for a backend-architecture assessment, but
@@ -257,6 +254,14 @@ Two mechanisms, for two different problems:
 - **Single-region deployment** assumed; no multi-region/DR strategy.
 
 ## API overview
+
+### Interactive API Documentation (Swagger UI)
+
+A fully interactive Swagger UI is available out-of-the-box. Once the Docker container is running, simply navigate to:
+
+**[`http://localhost:8000/api/documentation`](http://localhost:8000/api/documentation)**
+
+This interface allows you to browse all available endpoints, view schemas, authenticate, and send live requests directly from your browser.
 
 ### Authentication (public — no token required)
 
