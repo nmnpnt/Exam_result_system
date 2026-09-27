@@ -163,10 +163,16 @@
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="p-6 border-b flex justify-between items-center bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-800">Computed Results (Read Replica)</h3>
-                    <button @click="fetchResults" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center">
-                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        Refresh Data
-                    </button>
+                    <div class="flex space-x-2">
+                        <button @click="computeResults" :disabled="computing" class="bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-1 px-3 rounded flex items-center transition duration-150 disabled:opacity-50">
+                            <span x-show="!computing">Compute Grades</span>
+                            <span x-show="computing">Computing...</span>
+                        </button>
+                        <button @click="fetchResults" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            Refresh Data
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -175,6 +181,7 @@
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programme</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Marks</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grade</th>
                             </tr>
@@ -189,6 +196,10 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900" x-text="result.student.programme.code"></div>
                                         <div class="text-sm text-gray-500" x-text="result.student.batch_year"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900 font-medium" x-text="result.course.code"></div>
+                                        <div class="text-sm text-gray-500" x-text="result.course.name"></div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold" x-text="result.total_marks"></td>
                                     <td class="px-6 py-4 whitespace-nowrap">
@@ -227,6 +238,7 @@
                 file: null,
                 activeBatch: null,
                 uploading: false,
+                computing: false,
                 pollInterval: null,
                 results: [],
 
@@ -275,7 +287,7 @@
                             method: 'POST',
                             body: this.loginForm
                         });
-                        this.token = data.access_token;
+                        this.token = data.token;
                         localStorage.setItem('auth_token', this.token);
                         this.success = 'Successfully logged in!';
                         setTimeout(() => this.success = '', 3000);
@@ -303,15 +315,23 @@
                     this.success = '';
                     
                     const formData = new FormData();
-                    formData.append('csv_file', this.file);
+                    formData.append('file', this.file);
                     
                     try {
-                        const data = await this.api('/marks/upload', {
+                        const data = await this.api('/examinations/1/marks/upload', {
                             method: 'POST',
+                            headers: {
+                                'X-Idempotency-Key': 'upload-' + Date.now()
+                            },
                             body: formData
                         });
                         
-                        this.activeBatch = data.batch;
+                        this.activeBatch = { 
+                            id: data.batch_id, 
+                            status: data.status, 
+                            total_rows: data.total_rows, 
+                            processed_rows: 0 
+                        };
                         this.success = 'File uploaded successfully! Processing started in the background.';
                         setTimeout(() => this.success = '', 3000);
                         this.file = null;
@@ -357,6 +377,28 @@
                     }
                 },
 
+                async computeResults() {
+                    this.computing = true;
+                    this.error = '';
+                    this.success = '';
+                    
+                    try {
+                        // Assuming examination ID is 1 for demo purposes
+                        await this.api('/examinations/1/results/compute', {
+                            method: 'POST'
+                        });
+                        this.success = 'Grade computation started in the background!';
+                        setTimeout(() => this.success = '', 3000);
+                        
+                        // Wait a bit for the queue to process, then refresh
+                        setTimeout(() => this.fetchResults(), 2000);
+                    } catch (err) {
+                        this.error = err.message;
+                    } finally {
+                        this.computing = false;
+                    }
+                },
+
                 startPolling() {
                     if (this.pollInterval) clearInterval(this.pollInterval);
                     
@@ -364,8 +406,8 @@
                         if (!this.activeBatch) return clearInterval(this.pollInterval);
                         
                         try {
-                            const data = await this.api(`/marks/batch/${this.activeBatch.id}`);
-                            this.activeBatch = data.data;
+                            const data = await this.api(`/mark-uploads/${this.activeBatch.id}`);
+                            this.activeBatch = data;
                             
                             // Refresh results while processing to show real-time updates
                             this.fetchResults();

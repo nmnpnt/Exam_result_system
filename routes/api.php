@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('mark-uploads/{batch}/errors', [MarkUploadController::class, 'errors']);
 
     // Result lifecycle.
+    Route::get('results', [ResultController::class, 'index']);
     Route::post('examinations/{examination}/results/compute', [ResultController::class, 'compute']);
     Route::middleware('idempotent')->group(function () {
         Route::post('examinations/{examination}/results/publish', [ResultController::class, 'publish']);

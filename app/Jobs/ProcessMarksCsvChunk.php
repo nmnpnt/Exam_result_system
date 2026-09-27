@@ -33,7 +33,7 @@ class ProcessMarksCsvChunk implements ShouldQueue
     public array $backoff = [10, 30, 60];
 
     public function __construct(
-        public int $batchId,
+        public int $uploadBatchId,
         public int $offset,
         public int $limit,
     ) {}
@@ -44,7 +44,7 @@ class ProcessMarksCsvChunk implements ShouldQueue
             return;
         }
 
-        $batch = MarkUploadBatch::findOrFail($this->batchId);
+        $batch = MarkUploadBatch::findOrFail($this->uploadBatchId);
 
         $csv = Reader::createFromPath(Storage::path($batch->storage_path), 'r');
         $csv->setHeaderOffset(0);
@@ -139,7 +139,7 @@ class ProcessMarksCsvChunk implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        MarkUploadBatch::where('id', $this->batchId)->update([
+        MarkUploadBatch::where('id', $this->uploadBatchId)->update([
             'completed_chunks' => DB::raw('completed_chunks + 1'),
         ]);
     }

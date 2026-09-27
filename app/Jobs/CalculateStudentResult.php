@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Enrollment;
 use App\Services\ResultCalculationService;
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  */
 class CalculateStudentResult implements ShouldQueue, ShouldBeUnique
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 5;
     public array $backoff = [5, 15, 30, 60, 120];

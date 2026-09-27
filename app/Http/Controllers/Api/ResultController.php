@@ -11,6 +11,33 @@ use Illuminate\Http\Request;
 
 class ResultController extends Controller
 {
+    /** GET /api/results */
+    public function index(): JsonResponse
+    {
+        $results = \App\Models\Result::with(['enrollment.student.programme', 'enrollment.examinationCourse.course'])->get()->map(function($result) {
+            return [
+                'id' => $result->id,
+                'total_marks' => $result->total_marks_obtained,
+                'grade' => $result->grade,
+                'status' => $result->status,
+                'student' => [
+                    'name' => $result->enrollment->student->name,
+                    'roll_number' => $result->enrollment->student->roll_number,
+                    'batch_year' => $result->enrollment->student->batch_year,
+                    'programme' => [
+                        'code' => $result->enrollment->student->programme->code ?? 'N/A'
+                    ]
+                ],
+                'course' => [
+                    'code' => $result->enrollment->examinationCourse->course->code ?? 'N/A',
+                    'name' => $result->enrollment->examinationCourse->course->name ?? 'N/A'
+                ]
+            ];
+        });
+        
+        return response()->json(['data' => $results]);
+    }
+
     /**
      * POST /api/examinations/{examination}/results/compute
      * Fans out result computation across the whole examination asynchronously.
