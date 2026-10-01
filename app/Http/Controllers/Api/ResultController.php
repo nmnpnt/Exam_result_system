@@ -72,9 +72,14 @@ class ResultController extends Controller
     }
 
     /**
-     * POST /api/examinations/{examination}/results/publish
-     * Publishing is a deliberate, separate step from computing — a result
-     * can be reviewed while `computed` before being made visible.
+     * @OA\Post(
+     *     path="/api/examinations/{examination}/results/publish",
+     *     tags={"Results"},
+     *     summary="Publish computed results for an examination",
+     *     description="Moves all computed results to 'published' status and makes them visible to students. Requires X-Idempotency-Key header.",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response="200", description="Results published with count")
+     * )
      */
     public function publish(Examination $examination): JsonResponse
     {
@@ -94,7 +99,16 @@ class ResultController extends Controller
         ]);
     }
 
-    /** GET /api/enrollments/{enrollment}/result */
+    /**
+     * @OA\Get(
+     *     path="/api/enrollments/{enrollment}/result",
+     *     tags={"Results"},
+     *     summary="View a single published result for an enrollment",
+     *     @OA\Parameter(name="enrollment", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response="200", description="Published result"),
+     *     @OA\Response(response="404", description="Result not available or not yet published")
+     * )
+     */
     public function show(Enrollment $enrollment): JsonResponse
     {
         $result = $enrollment->result;

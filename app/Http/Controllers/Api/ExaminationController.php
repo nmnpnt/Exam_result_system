@@ -55,12 +55,35 @@ class ExaminationController extends Controller
         return response()->json(Examination::create($data), 201);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/examinations/{examination}",
+     *     tags={"Examinations"},
+     *     summary="Show an examination with its courses and components",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response="200", description="Examination details")
+     * )
+     */
     public function show(Examination $examination)
     {
         return $examination->load('examinationCourses.course', 'examinationCourses.assessmentComponents');
     }
 
-    /** PATCH /api/examinations/{examination}/status — drive the status lifecycle. */
+    /**
+     * @OA\Patch(
+     *     path="/api/examinations/{examination}/status",
+     *     tags={"Examinations"},
+     *     summary="Update the examination lifecycle status",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", enum={"draft","open","locked","computing","published"}, example="open")
+     *         )
+     *     ),
+     *     @OA\Response(response="200", description="Status updated")
+     * )
+     */
     public function updateStatus(Request $request, Examination $examination)
     {
         $data = $request->validate([
@@ -72,6 +95,23 @@ class ExaminationController extends Controller
         return $examination;
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/examinations/{examination}/courses",
+     *     tags={"Examinations"},
+     *     summary="Attach a course to an examination",
+     *     @OA\Parameter(name="examination", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="course_id", type="integer", example=1),
+     *             @OA\Property(property="max_marks", type="integer", example=100),
+     *             @OA\Property(property="pass_marks", type="integer", example=40)
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="Course attached to examination")
+     * )
+     */
     public function addCourse(Request $request, Examination $examination)
     {
         $data = $request->validate([

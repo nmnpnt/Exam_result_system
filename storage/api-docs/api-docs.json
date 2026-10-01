@@ -316,6 +316,125 @@
                 }
             }
         },
+        "/api/examinations/{examination}": {
+            "get": {
+                "tags": [
+                    "Examinations"
+                ],
+                "summary": "Show an examination with its courses and components",
+                "operationId": "a4b41b2505097eddd0c2ab700792df5c",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Examination details"
+                    }
+                }
+            }
+        },
+        "/api/examinations/{examination}/status": {
+            "patch": {
+                "tags": [
+                    "Examinations"
+                ],
+                "summary": "Update the examination lifecycle status",
+                "operationId": "669d66608b8ff2ba643d43c010574d11",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "draft",
+                                            "open",
+                                            "locked",
+                                            "computing",
+                                            "published"
+                                        ],
+                                        "example": "open"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Status updated"
+                    }
+                }
+            }
+        },
+        "/api/examinations/{examination}/courses": {
+            "post": {
+                "tags": [
+                    "Examinations"
+                ],
+                "summary": "Attach a course to an examination",
+                "operationId": "25a2962fad65e24dc4feb0de4535379f",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "max_marks": {
+                                        "type": "integer",
+                                        "example": 100
+                                    },
+                                    "pass_marks": {
+                                        "type": "integer",
+                                        "example": 40
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Course attached to examination"
+                    }
+                }
+            }
+        },
         "/api/marks": {
             "post": {
                 "tags": [
@@ -422,6 +541,30 @@
                 }
             }
         },
+        "/api/mark-uploads/{batch}/errors": {
+            "get": {
+                "tags": [
+                    "Marks"
+                ],
+                "summary": "Get paginated row-level import errors for a batch",
+                "operationId": "f04d3566f062f0cd8dd1cbd0122f2f4e",
+                "parameters": [
+                    {
+                        "name": "batch",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of row-level errors"
+                    }
+                }
+            }
+        },
         "/api/programmes": {
             "get": {
                 "tags": [
@@ -432,6 +575,42 @@
                 "responses": {
                     "200": {
                         "description": "Paginated list of programmes"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Programmes"
+                ],
+                "summary": "Create a new programme",
+                "operationId": "b9efff61fead5548f41d4a916b0db453",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "CSE"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Computer Science & Engineering"
+                                    },
+                                    "duration_years": {
+                                        "type": "integer",
+                                        "example": 4
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Programme created"
                     }
                 }
             }
@@ -499,6 +678,58 @@
                 }
             }
         },
+        "/api/examinations/{examination}/results/publish": {
+            "post": {
+                "tags": [
+                    "Results"
+                ],
+                "summary": "Publish computed results for an examination",
+                "description": "Moves all computed results to 'published' status and makes them visible to students. Requires X-Idempotency-Key header.",
+                "operationId": "38496c2c938bfd10b9ffd04ff816c5c5",
+                "parameters": [
+                    {
+                        "name": "examination",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Results published with count"
+                    }
+                }
+            }
+        },
+        "/api/enrollments/{enrollment}/result": {
+            "get": {
+                "tags": [
+                    "Results"
+                ],
+                "summary": "View a single published result for an enrollment",
+                "operationId": "542436886d0772475c50b30ebb6059c2",
+                "parameters": [
+                    {
+                        "name": "enrollment",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Published result"
+                    },
+                    "404": {
+                        "description": "Result not available or not yet published"
+                    }
+                }
+            }
+        },
         "/api/students": {
             "get": {
                 "tags": [
@@ -519,6 +750,74 @@
                 "responses": {
                     "200": {
                         "description": "A list of students"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Create a new student",
+                "operationId": "aa0044bcc7e0cbaa736f0c20a4a6765c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "programme_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "roll_number": {
+                                        "type": "string",
+                                        "example": "CSE2026001"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "John Doe"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "john@example.com"
+                                    },
+                                    "batch_year": {
+                                        "type": "integer",
+                                        "example": 2026
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Student created"
+                    }
+                }
+            }
+        },
+        "/api/students/{student}": {
+            "get": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Show a student with their enrolments",
+                "operationId": "d67efa075fe7ae07b51c13d66feb5031",
+                "parameters": [
+                    {
+                        "name": "student",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Student details with enrolments"
                     }
                 }
             }

@@ -21,6 +21,22 @@ class ProgrammeController extends Controller
         return Programme::paginate(50);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/programmes",
+     *     tags={"Programmes"},
+     *     summary="Create a new programme",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="code", type="string", example="CSE"),
+     *             @OA\Property(property="name", type="string", example="Computer Science & Engineering"),
+     *             @OA\Property(property="duration_years", type="integer", example=4)
+     *         )
+     *     ),
+     *     @OA\Response(response="201", description="Programme created")
+     * )
+     */
     public function store(Request $request)
     {
         $data = $request->validate([

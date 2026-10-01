@@ -82,7 +82,15 @@ class MarkUploadController extends Controller
         ]);
     }
 
-    /** GET /api/mark-uploads/{batch}/errors — paginated row-level errors. */
+    /**
+     * @OA\Get(
+     *     path="/api/mark-uploads/{batch}/errors",
+     *     tags={"Marks"},
+     *     summary="Get paginated row-level import errors for a batch",
+     *     @OA\Parameter(name="batch", in="path", required=true, @OA\Schema(type="string")),
+     *     @OA\Response(response="200", description="Paginated list of row-level errors")
+     * )
+     */
     public function errors(MarkUploadBatch $batch): JsonResponse
     {
         return response()->json(
